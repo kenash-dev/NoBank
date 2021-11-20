@@ -1,4 +1,5 @@
 ﻿using DbUp;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -9,9 +10,18 @@ namespace NoBank.Database
     {
         static int Main(string[] args)
         {
+            // Loads connection string settings from appsettings.json, environment variables and command line
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
+                .AddCommandLine(args)
+                .Build();
+
             var connectionString =
         args.FirstOrDefault()
-        ?? "Server=(local)\\SqlExpress; Database=NoBank; Trusted_connection=true";
+        ?? configuration.GetConnectionString("NoBankDatabase");
+
+            EnsureDatabase.For.SqlDatabase(connectionString);
 
             var upgrader =
                 DeployChanges.To
